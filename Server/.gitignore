@@ -41,6 +41,5 @@ ipch/
 *.out
 
 # Intermediate and output files
-*.ilk
 *.pdb
 *.obj
