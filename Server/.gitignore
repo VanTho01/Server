@@ -1,0 +1,46 @@
+## Visual Studio
+
+# User-specific files
+*.suo
+*.user
+*.user.*
+*.vcxproj.user
+*.sln.docstates
+
+# In-solution temporary files
+.vs/
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+ARM/
+ARM64/
+[Bb]in/
+[Oo]bj/
+
+# Visual C++ cache files
+ipch/
+*.aps
+*.ncb
+*.opensdf
+*.sdf
+*.tlog
+*.log
+
+# Precompiled Headers
+*.pch
+
+# Executables and libraries
+*.exe
+*.dll
+*.so
+*.lib
+*.a
+*.out
+
+# Intermediate and output files
+*.ilk
+*.pdb
+*.obj
