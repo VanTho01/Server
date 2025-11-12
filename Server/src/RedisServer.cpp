@@ -1,8 +1,12 @@
 #include "../include/RedisServer.h"
+#include "../include/RedisCommandHandler.h"
 #include <iostream>
+#include <thread>
+#include <vector>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <netinet/in.h>
+#include <cstring>
 static RedisServer* globalServer = nullptr;
 RedisServer::RedisServer(int port) : port(port), server_socket(-1), running(true)
 {
@@ -33,9 +37,10 @@ void RedisServer::run()
     serverAddr.sin_port = htons(port);
     serverAddr.sin_addr.s_addr = INADDR_ANY;
 
-    if (bind(server_socket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0)
+    auto server_socket_value = bind(server_socket, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+    if (server_socket_value < 0)
     {
-        std::cerr << "Error Binding Server Socket!!!\n";
+        std::cerr << "Error Binding Server Socket!!!" << server_socket_value << std::endl;
         return;
     }
     if (listen(server_socket, 10) < 0)
@@ -44,4 +49,41 @@ void RedisServer::run()
         return;
     }
     std::cout << "Server listen on Port: " << port << std::endl;
+
+    std::vector<std::thread> threads;
+    RedisCommandHandler cmdHandler;
+
+    while (running)
+    {
+        int client_socket = accept(server_socket, nullptr, nullptr);
+        if (client_socket < 0)
+        {
+            if (running)
+                std::cerr << "error socket receiving!!!\n";
+            break;
+        }
+
+        threads.emplace_back([client_socket, &cmdHandler]()
+            {
+                char buffer[1024];
+                while (true)
+                {
+                    memset(buffer, 0, sizeof(buffer));
+                    int bytes = recv(client_socket, buffer, sizeof(buffer) - 1, 0);
+                    std::string request(buffer, bytes);
+                    std::string response = cmdHandler.processCommand(request);
+                    send(client_socket, response.c_str(), response.size(), 0);
+                }
+                close(client_socket);
+            });
+        for (auto& t : threads)
+        {
+            if (t.joinable())
+            {
+                t.join();
+            }
+
+        }
+    }
+
 }
